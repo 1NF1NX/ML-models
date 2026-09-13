@@ -27,6 +27,7 @@ after 33 bytes
 */
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 typedef struct IDRH {
 	unsigned char signature[8];
@@ -40,17 +41,47 @@ typedef struct IDAT {
 	unsigned char type[4];
 	unsigned char *data;
 	unsigned char crc[4];
+	struct IDAT *next;
 }idat;
 
 void Readpixel(FILE *fp) {
-	idat chunk;
-	fread(chunk.length, 1, 4, fp);
-	fread(chunk.type, 1, 4, fp);
-	uint32_t val = ((uint32_t)chunk.length[0] << 24) |
-		 ((uint32_t)chunk.length[1] << 16) |
-   		 ((uint32_t)chunk.length[2] << 8)  |
-		 chunk.length[3];
+	bool c = false;
+	idat *head;
+	idat *ptr;
+
+	while(1) {
+		idat *chunk = (idat*)malloc(sizeof(idat));
+		fread(chunk->length, 1, 4, fp);
+		fread(chunk->type, 1, 4, fp);
+			uint32_t val = ((uint32_t)chunk->length[0] << 24) |
+				 ((uint32_t)chunk->length[1] << 16) |
+				 ((uint32_t)chunk->length[2] << 8)  |
+				 chunk->length[3];
+		if(chunk->type[0] == 'I' && chunk->type[1] == 'D'
+		   && chunk->type[2] == 'A' && chunk->type[3] == 'T') {
+			chunk->data = malloc(val);
+			fread(chunk->data, 1, val, fp);
+			fread(chunk->crc, 1, 4, fp);
+			chunk->next = NULL;
+			if (c == false) {
+				head = chunk;
+				ptr = chunk;
+				c = true;
+				continue;
+			}
+			ptr->next = chunk;
+			ptr = chunk;
+		}
+		else if(chunk->type[0] == 'I' && chunk->type[1] == 'E'
+		   && chunk->type[2] == 'N' && chunk->type[3] == 'D')
+			return; //for now for testing
+		else {
+			fseek(fp, val + 4, SEEK_CUR);
+			free(chunk);
+		}
+	}
 }
+
 
 int main() {
 	FILE *fp = fopen("/home/ashansud/Downloads/cnn_grayscale_example.png","rb");
@@ -75,9 +106,7 @@ int main() {
 		printf("%X ", byte);
 	}
 
-	for(int i = 33; i < 100; i++) {
-		
-	}
+	Readpixel(fp);
 	fclose(fp);
 	return 0;
 }
