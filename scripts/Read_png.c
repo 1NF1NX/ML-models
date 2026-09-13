@@ -84,7 +84,7 @@ void Readpixel(FILE *fp) {
 
 
 int main() {
-	FILE *fp = fopen("/home/ashansud/Downloads/cnn_grayscale_example.png","rb");
+	FILE *fp = fopen("cnn_grayscale_example.png","rb");
 	if (fp == NULL) {
 		printf("Could not open file!");
 		return 1;
