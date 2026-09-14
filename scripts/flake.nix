@@ -1,11 +1,11 @@
 {
 description = "CNN from scratch";
 
-input = {
+inputs = {
 	nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 };
 
-output = { self, nixpkgs }:
+outputs = { self, nixpkgs }:
 	let 
 		system = "x86_64-linux";
 		pkgs = import nixpkgs {inherit system;};
@@ -15,6 +15,11 @@ output = { self, nixpkgs }:
 			  gcc
 			  zlib
 		   ];
+		IN_CNN_DEV_SHELL = "1";
+		
+		shellHook = ''
+		exec fish
+		'';
 		};
 	};
 }
