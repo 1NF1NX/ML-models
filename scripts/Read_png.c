@@ -28,6 +28,7 @@ after 33 bytes
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <zlib.h>
 
 typedef struct IDRH {
 	unsigned char signature[8];
