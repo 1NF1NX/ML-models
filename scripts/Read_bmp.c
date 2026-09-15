@@ -69,7 +69,7 @@ void Readpixel(FILE *fp){
 
                for(int i=0 ; i<height ; i++){
                 fread(pixel.data,1,row_size,fp);
-               }
+               
 
                for(int j=0; j<width ; j++)
                {
@@ -79,17 +79,18 @@ void Readpixel(FILE *fp){
 
                 blue = pixel.data[j * 3];
                 green = pixel.data[j * 3 +1];
-                red = pixel.data[j* 3+2];
+                red = pixel.data[j* 3 + 2];
 
-                unsigned char gray
-                (unsigned char) = 0.299*red+ 0.587*green + 0.114*blue;
+                unsigned char gray;
+                gray=(unsigned char)0.299*red+ 0.587*green + 0.114*blue;
 
-                matrix[ height - 1 - i][j]= gray ;
+                matrix[ height-1-i][j]= gray ;
                }
+            }
                for(int i=0; i<height ; i++)
                {
                 for (int j=0 ; j<width ; j++){
-                    printf("%3d" , matrix[i][j]);
+                    printf("%3d " , matrix[i][j]);
                 }
                 printf("\n");
                }
@@ -114,9 +115,4 @@ void Readpixel(FILE *fp){
             Readpixel(fp);
             fclose(fp);
             return 0;
-        }
-    
-
-
-
-
+        }    
