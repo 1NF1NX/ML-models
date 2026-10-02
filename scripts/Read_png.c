@@ -30,12 +30,12 @@ after 33 bytes
 #include <stdlib.h>
 #include <zlib.h>
 
-typedef struct IDRH {
+typedef struct IHDR {
 	unsigned char signature[8];
 	unsigned char length[4];
 	unsigned char data[13];
 	unsigned char crc[4];
-}idhr;
+}ihdr;
 
 typedef struct IDAT {
 	unsigned char length[4];
@@ -45,7 +45,13 @@ typedef struct IDAT {
 	struct IDAT *next;
 }idat;
 
-void Readpixel(FILE *fp) {
+typedef struct Pixel{
+    unsigned char r;
+    unsigned char g;
+    unsigned char b;
+}pxl;
+
+idat* Readpixel(FILE *fp) {
 	bool c = false;
 	idat *head;
 	idat *ptr;
@@ -75,7 +81,7 @@ void Readpixel(FILE *fp) {
 		}
 		else if(chunk->type[0] == 'I' && chunk->type[1] == 'E'
 		   && chunk->type[2] == 'N' && chunk->type[3] == 'D')
-			return; //for now for testing
+			return head; //for now for testing
 		else {
 			fseek(fp, val + 4, SEEK_CUR);
 			free(chunk);
@@ -83,15 +89,66 @@ void Readpixel(FILE *fp) {
 	}
 }
 
+int decompress(idat *chunk, ihdr p) {
+	z_stream strm = {0};
+
+	int ret = inflateInit(&strm);
+	uint32_t width =
+    ((uint32_t)p.data[0] << 24) |
+    ((uint32_t)p.data[1] << 16) |
+    ((uint32_t)p.data[2] << 8)  |
+    p.data[3];
+	uint32_t height =
+    ((uint32_t)p.data[4] << 24) |
+    ((uint32_t)p.data[5] << 16) |
+    ((uint32_t)p.data[6] << 8)  |
+    p.data[7];
+uint8_t bit_depth = p.data[8];
+uint8_t color_type = p.data[9];
+
+printf("Width: %u\n", width);
+printf("Height: %u\n", height);
+printf("Bit depth: %u\n", bit_depth);
+printf("Color type: %u\n", color_type);
+	unsigned char output[height * (width * 4 + 1)];
+	while (chunk != NULL ) {
+	uint32_t length =
+    ((uint32_t)chunk->length[0] << 24) |
+    ((uint32_t)chunk->length[1] << 16) |
+    ((uint32_t)chunk->length[2] << 8)  |
+    chunk->length[3];
+	strm.next_in = chunk->data;
+	strm.avail_in = length;
+	strm.next_out = output + strm.total_out;
+	strm.avail_out = sizeof(output) - strm.total_out;
+
+	if (ret != Z_OK) {
+        	printf("inflateInit failed\n");
+        	return 1;
+    	}
+		
+	    ret = inflate(&strm, Z_FINISH);
+	    printf("avail_in: %u\n", strm.avail_in);
+printf("avail_out: %u\n", strm.avail_out);
+printf("total_out: %lu\n", strm.total_out);
+	    printf("\ninflate returned: %d\n", ret);
+	    printf("bytes produced: %lu\n",sizeof(output) - strm.avail_out);
+
+	    chunk = chunk ->next;
+	}
+	    inflateEnd(&strm);
+
+	    return 0;
+}
 
 int main() {
-	FILE *fp = fopen("cnn_grayscale_example.png","rb");
+	FILE *fp = fopen("cnn_rgb_example.png","rb");
 	if (fp == NULL) {
 		printf("Could not open file!");
 		return 1;
 	}
 	
-	idhr p;
+	ihdr p;
 	unsigned char byte;
 	for (int i = 0; i < 33; i++) {
 		fread(&byte, 1, 1, fp);
@@ -107,7 +164,8 @@ int main() {
 		printf("%X ", byte);
 	}
 
-	Readpixel(fp);
+	idat* head = Readpixel(fp);
+	decompress(head,p);
 	fclose(fp);
 	return 0;
 }

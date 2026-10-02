@@ -12,7 +12,6 @@ outputs = { self, nixpkgs }:
 	in {
 		devShells.${system}.default = pkgs.mkShell {
 		   packages = with pkgs; [
-			  gcc
 			  zlib
 		   ];
 		IN_CNN_DEV_SHELL = "1";
