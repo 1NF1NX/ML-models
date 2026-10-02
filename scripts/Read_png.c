@@ -45,6 +45,12 @@ typedef struct IDAT {
 	struct IDAT *next;
 }idat;
 
+typedef struct Pixel{
+    unsigned char r;
+    unsigned char g;
+    unsigned char b;
+}pxl;
+
 idat* Readpixel(FILE *fp) {
 	bool c = false;
 	idat *head;
@@ -97,8 +103,13 @@ int decompress(idat *chunk, ihdr p) {
     ((uint32_t)p.data[5] << 16) |
     ((uint32_t)p.data[6] << 8)  |
     p.data[7];
-//	uint8_t bit_depth = p.data[8];
-//	uint8_t color_type = p.data[9];
+uint8_t bit_depth = p.data[8];
+uint8_t color_type = p.data[9];
+
+printf("Width: %u\n", width);
+printf("Height: %u\n", height);
+printf("Bit depth: %u\n", bit_depth);
+printf("Color type: %u\n", color_type);
 	unsigned char output[height * (width * 4 + 1)];
 	while (chunk != NULL ) {
 	uint32_t length =
@@ -110,8 +121,6 @@ int decompress(idat *chunk, ihdr p) {
 	strm.avail_in = length;
 	strm.next_out = output + strm.total_out;
 	strm.avail_out = sizeof(output) - strm.total_out;
-
-	
 
 	if (ret != Z_OK) {
         	printf("inflateInit failed\n");
