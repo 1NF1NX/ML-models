@@ -49,7 +49,8 @@ typedef struct Pixel{
     unsigned char r;
     unsigned char g;
     unsigned char b;
-}pxl;
+    unsigned char a;
+}pix;
 
 idat* Readpixel(FILE *fp) {
 	bool c = false;
@@ -137,6 +138,68 @@ printf("total_out: %lu\n", strm.total_out);
 	    chunk = chunk ->next;
 	}
 	    inflateEnd(&strm);
+	//    printf("\nRAW OUTPUT:\n");
+
+/*	for (int i = 0; i < 1000; i++) {
+    	printf("%02X ", output[i]);
+	}
+
+	printf("\n");
+	*/
+	    pix *image = malloc(width * height * sizeof(pix));
+	    for (uint32_t y = 0; y < height; y++) {
+
+    	size_t row_start = y * (width * 4 + 1);
+
+    	unsigned char filter = output[row_start];
+
+    	printf("Row %u, filter = %u\n", y, filter);
+
+    	for (uint32_t x = 0; x < width; x++) {
+
+        	size_t i = row_start + 1 + x * 4;
+		size_t index = y * width + x;
+		if(filter == 0) {
+			image[index].r = output[i];
+			image[index].g = output[i + 1];
+			image[index].b = output[i + 2];
+			image[index].a = output[i + 3];
+		}
+
+		else if(filter == 1) {
+			if(x == 0) {
+				image[index].r = output[i];
+				image[index].g = output[i + 1];
+				image[index].b = output[i + 2];
+				image[index].a = output[i + 3];
+			}
+			else {
+				image[index].r = output[i] + image[index-1].r;
+				image[index].g = output[i + 1] + image[index-1].g;
+				image[index].b = output[i + 2] + image[index-1].b;
+				image[index].a = output[i + 3] + image[index-1].a;
+			}
+		}
+
+		else if(filter == 2) {
+			if(y == 0) {
+				image[index].r = output[i];
+				image[index].g = output[i + 1];
+				image[index].b = output[i + 2];
+				image[index].a = output[i + 3];
+			}
+			else {
+				image[index].r = output[i] + image[index - width].r;
+				image[index].g = output[i+1] + image[index - width].b;
+				image[index].b = output[i+2] + image[index - width].g;
+				image[index].a = output[i+3] + image[index - width].a;
+			}
+		}
+        printf("(%u, %u, %u, %u) ", image[index].r, image[index].g, image[index].b,image[index].a);
+    } 
+
+    printf("\n");
+}
 
 	    return 0;
 }
