@@ -106,12 +106,39 @@ int decompress(idat *chunk, ihdr p) {
     p.data[7];
 uint8_t bit_depth = p.data[8];
 uint8_t color_type = p.data[9];
+int channel;
 
+switch(color_type){
+    case 0:
+    //grayscale
+    channels=1;
+    break;
+
+    case 2:
+    //Truecolor RGB
+    channel=3;
+    break;
+
+    case 3:
+    //Indexed color
+    channel=1;
+    break;
+
+    case 4:
+    //Grayscale+alpha
+    channel=2;
+    break;
+
+    case 6:
+    //Truecolor+alpha
+    channel=4;
+    break;
+}
 printf("Width: %u\n", width);
 printf("Height: %u\n", height);
 printf("Bit depth: %u\n", bit_depth);
 printf("Color type: %u\n", color_type);
-	unsigned char output[height * (width * 4 + 1)];
+	unsigned char output[height * (width * channel + 1)];
 	while (chunk != NULL ) {
 	uint32_t length =
     ((uint32_t)chunk->length[0] << 24) |
@@ -149,7 +176,7 @@ printf("total_out: %lu\n", strm.total_out);
 	    pix *image = malloc(width * height * sizeof(pix));
 	    for (uint32_t y = 0; y < height; y++) {
 
-    	size_t row_start = y * (width * 4 + 1);
+    	size_t row_start = y * (width * channel + 1);
 
     	unsigned char filter = output[row_start];
 
@@ -157,7 +184,7 @@ printf("total_out: %lu\n", strm.total_out);
 
     	for (uint32_t x = 0; x < width; x++) {
 
-        	size_t i = row_start + 1 + x * 4;
+        	size_t i = row_start + 1 + x * channel;
 		size_t index = y * width + x;
 		if(filter == 0) {
 			image[index].r = output[i];
