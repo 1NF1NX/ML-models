@@ -6,10 +6,22 @@ unsigned char b1; \
 unsigned char b2; \
 fread(&b1,1,1,fp); \
 fread(&b2,1,1,fp); \
-int length=(b1<<8)|b2; \
+length=(b1<<8)|b2; \
 printf("length = %d\n",length); \
 }while(0)
-
+typedef struct {
+unsigned int segment_length;
+unsigned char precision;
+unsigned char height[2];
+unsigned char width[2];
+}FI;
+void frame(FILE* fp, int length) {
+	FI image;
+	image.segment_length = length;
+	fread(&image.precision,1,1,fp);
+	fread(&image.height,1,2,fp);
+	fread(&image.width,1,2,fp);
+}
 bool read_marker(FILE *fp){
 	unsigned char byte;
 	fread(&byte, 1, 1, fp);
@@ -40,6 +52,7 @@ bool read_marker(FILE *fp){
        		case 0xC0:
        			printf("SOF0(Start OF Frame)\n");
 			LENGTH(fp);
+			frame(fp,length);
        			break;
        		
        		case 0xC4:
