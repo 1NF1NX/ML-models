@@ -1,6 +1,14 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#define MAX_QTABLES 4
+
+typedef struct {
+           unit 16_t values[MAX_QTABLES][64]
+            bool defined[MAX_QTABLES];
+            }Quant tables;
+
+
 #define LENGTH(fp) do{ \
 unsigned char b1; \
 unsigned char b2; \
